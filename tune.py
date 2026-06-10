@@ -125,7 +125,7 @@ def main():
 
     objective = OBJECTIVES[args.model](X_train, y_train, cat_features)
     study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=args.trials, show_progress_bar=True)
+    study.optimize(objective, n_trials=args.trials, show_progress_bar=True, n_jobs=-1)
 
     print(f"\nBest CV RMSE: {study.best_value:.4f}")
     print("Best params:")
