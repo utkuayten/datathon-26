@@ -4,6 +4,9 @@ import pandas as pd
 from sklearn.linear_model import Ridge
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import KFold
+from sentence_transformers import SentenceTransformer
+
+EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 TARGET = "career_success_score"
 
@@ -124,7 +127,37 @@ def add_tfidf_features(X_train, X_test, y_train, n_splits=5, random_state=42):
     return X_train, X_test
 
 
-def prepare_features(X_train, X_test, y_train, use_tfidf=True):
+def add_embedding_features(X_train, X_test, y_train, n_splits=5, random_state=42):
+    print("Encoding texts with multilingual embeddings...")
+    model = SentenceTransformer(EMBEDDING_MODEL)
+
+    text_tr = X_train["mentor_feedback_text"].fillna("").tolist()
+    text_te = X_test["mentor_feedback_text"].fillna("").tolist()
+
+    emb_tr = model.encode(text_tr, batch_size=64, show_progress_bar=True)
+    emb_te = model.encode(text_te, batch_size=64, show_progress_bar=True)
+
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    oof = np.zeros(len(X_train))
+
+    for tr_idx, va_idx in kf.split(X_train):
+        ridge = Ridge(alpha=2.0)
+        ridge.fit(emb_tr[tr_idx], y_train[tr_idx])
+        oof[va_idx] = ridge.predict(emb_tr[va_idx])
+
+    ridge = Ridge(alpha=2.0)
+    ridge.fit(emb_tr, y_train)
+    te_pred = ridge.predict(emb_te)
+
+    X_train = X_train.copy()
+    X_test  = X_test.copy()
+    X_train["text_pred_emb"] = oof
+    X_test["text_pred_emb"]  = te_pred
+
+    return X_train, X_test
+
+
+def prepare_features(X_train, X_test, y_train, use_tfidf=True, use_embedding=False):
     X_train = add_structured_features(X_train)
     X_test  = add_structured_features(X_test)
 
@@ -133,6 +166,9 @@ def prepare_features(X_train, X_test, y_train, use_tfidf=True):
 
     if use_tfidf:
         X_train, X_test = add_tfidf_features(X_train, X_test, y_train)
+
+    if use_embedding:
+        X_train, X_test = add_embedding_features(X_train, X_test, y_train)
 
     X_train = X_train.drop(columns=["mentor_feedback_text"])
     X_test  = X_test.drop(columns=["mentor_feedback_text"])

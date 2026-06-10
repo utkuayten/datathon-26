@@ -16,6 +16,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", choices=MODELS.keys(), default="catboost")
     parser.add_argument("--no-tfidf", action="store_true")
+    parser.add_argument("--embedding", action="store_true")
     args = parser.parse_args()
 
     train = pd.read_csv("data/train.csv")
@@ -26,7 +27,9 @@ def main():
     X_train = train.drop(columns=[TARGET, "student_id"])
     X_test  = test.drop(columns=["student_id"])
 
-    X_train, X_test, cat_features = prepare_features(X_train, X_test, y_train, use_tfidf=not args.no_tfidf)
+    X_train, X_test, cat_features = prepare_features(X_train, X_test, y_train,
+                                                      use_tfidf=not args.no_tfidf,
+                                                      use_embedding=args.embedding)
 
     _, test_preds, metrics = MODELS[args.model](X_train, y_train, X_test, cat_features)
 
