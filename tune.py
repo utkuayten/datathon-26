@@ -45,6 +45,7 @@ def make_catboost_objective(X_train, y_train, cat_features, n_splits=5, random_s
             "l2_leaf_reg": trial.suggest_float("l2_leaf_reg", 5, 50, log=True),
             "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 10, 100),
             "subsample": trial.suggest_float("subsample", 0.6, 1.0),
+            "bootstrap_type": "Bernoulli",
             "loss_function": "RMSE",
             "eval_metric": "RMSE",
             "random_seed": 42,
