@@ -117,11 +117,14 @@ def main():
     parser.add_argument("--model", choices=OBJECTIVES.keys(), default="catboost")
     parser.add_argument("--trials", type=int, default=20)
     parser.add_argument("--no-tfidf", action="store_true")
+    parser.add_argument("--embedding", action="store_true")
     args = parser.parse_args()
 
     print("Loading and preparing features...")
     X_train, X_test, y_train = load_data()
-    X_train, X_test, cat_features = prepare_features(X_train, X_test, y_train, use_tfidf=not args.no_tfidf)
+    X_train, X_test, cat_features = prepare_features(X_train, X_test, y_train,
+                                                      use_tfidf=not args.no_tfidf,
+                                                      use_embedding=args.embedding)
 
     objective = OBJECTIVES[args.model](X_train, y_train, cat_features)
     study = optuna.create_study(direction="minimize")
