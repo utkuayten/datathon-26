@@ -16,8 +16,9 @@ def train_catboost(X_train, y_train, X_test, cat_features, n_splits=5, random_st
         X_tr, X_val = X_train.iloc[tr_idx], X_train.iloc[va_idx]
         y_tr, y_val = y_train[tr_idx], y_train[va_idx]
 
-        fold_val_pred  = np.zeros(len(X_val))
-        fold_test_pred = np.zeros(len(X_test))
+        fold_train_pred = np.zeros(len(X_tr))
+        fold_val_pred   = np.zeros(len(X_val))
+        fold_test_pred  = np.zeros(len(X_test))
 
         for seed in SEEDS:
             model = CatBoostRegressor(
@@ -36,15 +37,33 @@ def train_catboost(X_train, y_train, X_test, cat_features, n_splits=5, random_st
                 early_stopping_rounds=300,
                 verbose=False,
             )
-            fold_val_pred  += model.predict(X_val)  / len(SEEDS)
-            fold_test_pred += model.predict(X_test) / len(SEEDS)
+            fold_train_pred += model.predict(X_tr)   / len(SEEDS)
+            fold_val_pred   += model.predict(X_val)  / len(SEEDS)
+            fold_test_pred  += model.predict(X_test) / len(SEEDS)
 
         oof[va_idx]  = fold_val_pred
         test_preds  += fold_test_pred / kf.n_splits
 
-        print(f"Fold {fold + 1}: MSE={mean_squared_error(y_val, fold_val_pred):.4f}")
+        train_mse = mean_squared_error(y_tr, fold_train_pred)
+        val_mse   = mean_squared_error(y_val, fold_val_pred)
+        print(f"Fold {fold + 1}: Train MSE={train_mse:.4f}  Val MSE={val_mse:.4f}")
 
     cv_mse = mean_squared_error(y_train, oof)
     print(f"\nCV MSE: {cv_mse:.4f}  |  CV RMSE: {cv_mse ** 0.5:.4f}")
 
-    return oof, test_preds
+    print("\nFull train fit...")
+    full_test_preds = np.zeros(len(X_test))
+    for seed in SEEDS:
+        model = CatBoostRegressor(
+            iterations=4000,
+            learning_rate=0.02,
+            depth=5,
+            loss_function="RMSE",
+            eval_metric="RMSE",
+            random_seed=seed,
+            verbose=False,
+        )
+        model.fit(X_train, y_train, cat_features=cat_features, verbose=False)
+        full_test_preds += model.predict(X_test) / len(SEEDS)
+
+    return oof, full_test_preds
