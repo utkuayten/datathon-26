@@ -14,7 +14,17 @@ Place `train.csv` and `test_x.csv` inside the `data/` folder.
 ## Run
 
 ```bash
-python predict.py
+# CatBoost (default)
+python predict.py --model catboost
+
+# LightGBM
+python predict.py --model lightgbm
 ```
 
-Output: `submission_catboost_nlp.csv`
+Output: `submission_catboost.csv` or `submission_lightgbm.csv`
+
+## Hyperparameter Tuning
+
+```bash
+python tune.py
+```

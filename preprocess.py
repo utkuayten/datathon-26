@@ -124,14 +124,15 @@ def add_tfidf_features(X_train, X_test, y_train, n_splits=5, random_state=42):
     return X_train, X_test
 
 
-def prepare_features(X_train, X_test, y_train):
+def prepare_features(X_train, X_test, y_train, use_tfidf=True):
     X_train = add_structured_features(X_train)
     X_test  = add_structured_features(X_test)
 
     X_train = add_lexicon_features(X_train)
     X_test  = add_lexicon_features(X_test)
 
-    X_train, X_test = add_tfidf_features(X_train, X_test, y_train)
+    if use_tfidf:
+        X_train, X_test = add_tfidf_features(X_train, X_test, y_train)
 
     X_train = X_train.drop(columns=["mentor_feedback_text"])
     X_test  = X_test.drop(columns=["mentor_feedback_text"])

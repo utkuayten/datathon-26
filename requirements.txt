@@ -1,4 +1,5 @@
 catboost
+lightgbm
 scikit-learn
 pandas
 numpy
