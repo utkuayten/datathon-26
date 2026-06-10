@@ -10,7 +10,7 @@ from sklearn.metrics import mean_squared_error
 
 from preprocess import TARGET, prepare_features
 
-optuna.logging.set_verbosity(optuna.logging.WARNING)
+optuna.logging.set_verbosity(optuna.logging.INFO)
 
 
 def get_task_type():
