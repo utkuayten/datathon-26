@@ -28,6 +28,7 @@ def train_catboost(X_train, y_train, X_test, cat_features, n_splits=5, random_st
                 loss_function="RMSE",
                 eval_metric="RMSE",
                 random_seed=seed,
+                task_type="GPU",
                 verbose=False,
             )
             model.fit(
@@ -61,6 +62,7 @@ def train_catboost(X_train, y_train, X_test, cat_features, n_splits=5, random_st
             loss_function="RMSE",
             eval_metric="RMSE",
             random_seed=seed,
+            task_type="GPU",
             verbose=False,
         )
         model.fit(X_train, y_train, cat_features=cat_features, verbose=False)

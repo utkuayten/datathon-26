@@ -31,6 +31,7 @@ def make_objective(X_train, y_train, cat_features, n_splits=5, random_state=42):
             "loss_function": "RMSE",
             "eval_metric": "RMSE",
             "random_seed": 42,
+            "task_type": "GPU",
             "verbose": False,
         }
 
